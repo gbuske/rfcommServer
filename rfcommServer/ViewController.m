@@ -109,10 +109,28 @@
     }
 }
 
+#pragma mark - Utils
+
+- (void) appendRecText: (NSString*) text {
+    NSString *cur = self.receiveTextView.string;
+    NSString *newTitle = @"\r\n ===== Got Data: ===== \r\n\r\n";
+    NSString *new = [NSString stringWithFormat:@"%@%@%@%@", cur, newTitle, text, @"\r\n"];
+    self.receiveTextView.string = new;
+}
+
 #pragma mark - RFCOMM Channel delegate
 
 - (void)rfcommChannelData:(IOBluetoothRFCOMMChannel*)rfcommChannel data:(void *)dataPointer length:(size_t)dataLength {
     DLog(@"got %@ bytes", @(dataLength));
+    if (dataPointer != NULL && dataLength > 0) {
+        NSString *buffer;
+        
+        buffer = [[NSString alloc] initWithBytesNoCopy:dataPointer length:dataLength encoding:NSUTF8StringEncoding freeWhenDone:NO];
+        if (buffer) {
+            NSLog(@"Got data: %@", buffer);
+            [self appendRecText: buffer];
+        }
+    }
 }
 
 - (void)rfcommChannelOpenComplete:(IOBluetoothRFCOMMChannel*)rfcommChannel status:(IOReturn)error {
